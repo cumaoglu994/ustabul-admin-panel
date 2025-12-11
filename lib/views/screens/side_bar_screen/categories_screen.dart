@@ -1,6 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:ustabul_web_admin/views/screens/widget/category_widget.dart';
@@ -13,35 +11,13 @@ class CategoriesScreen extends StatefulWidget {
 }
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
-  final FirebaseStorage _storage = FirebaseStorage.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GlobalKey<FormState> _mainCategoryFormKey = GlobalKey<FormState>();
   final GlobalKey<FormState> _subCategoryFormKey = GlobalKey<FormState>();
 
-  dynamic _image;
-  String? fileName;
   String? mainCategoryName;
   String? subCategoryName;
   String? selectedMainCategoryId;
-
-  _pickImage() async {
-    FilePickerResult? result = await FilePicker.platform
-        .pickFiles(allowMultiple: false, type: FileType.image);
-    if (result != null) {
-      setState(() {
-        _image = result.files.first.bytes;
-        fileName = result.files.first.name;
-      });
-    }
-  }
-
-  _upLoadCategoryBannerToStorage(dynamic image) async {
-    Reference ref = _storage.ref().child('categoryImages').child(fileName!);
-    UploadTask uploadTask = ref.putData(image);
-    TaskSnapshot snapshot = await uploadTask;
-    String downloadUrl = await snapshot.ref.getDownloadURL();
-    return downloadUrl;
-  }
 
   // Ana kategori ekleme
   uploadMainCategory() async {
@@ -73,28 +49,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         return;
       }
 
-      String? imageUrl;
-      String? docId;
-
-      // Fotoğraf varsa yükle
-      if (_image != null && fileName != null) {
-        imageUrl = await _upLoadCategoryBannerToStorage(_image);
-        docId = fileName;
-      } else {
-        // Fotoğraf yoksa benzersiz bir ID oluştur
-        docId = DateTime.now().millisecondsSinceEpoch.toString();
-      }
+      // Benzersiz bir ID oluştur
+      String docId = DateTime.now().millisecondsSinceEpoch.toString();
 
       Map<String, dynamic> categoryData = {
         'categoryName': subCategoryName,
         'mainCategoryId': selectedMainCategoryId,
         'createdAt': FieldValue.serverTimestamp(),
       };
-
-      // Fotoğraf varsa ekle
-      if (imageUrl != null) {
-        categoryData['image'] = imageUrl;
-      }
 
       await _firestore
           .collection('categories')
@@ -104,8 +66,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         EasyLoading.dismiss();
         EasyLoading.showSuccess('Alt kategori eklendi!');
         setState(() {
-          _image = null;
-          fileName = null;
           subCategoryName = null;
           selectedMainCategoryId = null;
           _subCategoryFormKey.currentState!.reset();
@@ -217,7 +177,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Alt Kategori Ekle . ',
+                    'Alt Kategori Ekle',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -293,42 +253,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             border: OutlineInputBorder(),
                           ),
                         ),
-                      ),
-
-                      // Fotoğraf Yükleme
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            height: 140,
-                            width: 140,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[300],
-                              border: Border.all(color: Colors.black),
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            child: _image != null
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(25),
-                                    child: Image.memory(
-                                      _image,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  )
-                                : Center(
-                                    child: Icon(
-                                      Icons.image,
-                                      size: 50,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                          ),
-                          SizedBox(height: 10),
-                          ElevatedButton(
-                            onPressed: _pickImage,
-                            child: Text('Fotoğraf Yükle'),
-                          ),
-                        ],
                       ),
 
                       // Kaydet Butonu
