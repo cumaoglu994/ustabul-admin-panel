@@ -217,7 +217,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Alt Kategori Ekle',
+                    'Alt Kategori Ekle . ',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
