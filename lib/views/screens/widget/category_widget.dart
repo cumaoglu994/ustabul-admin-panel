@@ -117,6 +117,7 @@ class CategoryWidget extends StatelessWidget {
                         itemBuilder: (context, subIndex) {
                           final subCategoryData =
                               subSnapshot.data!.docs[subIndex];
+                          final imageUrl = subCategoryData['image'];
                           return Column(
                             children: [
                               Padding(
@@ -127,28 +128,38 @@ class CategoryWidget extends StatelessWidget {
                                   width: genislik,
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
-                                    child: Image.network(
-                                      subCategoryData['image'],
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return Container(
-                                          color: Colors.grey[300],
-                                          child: Icon(
-                                            Icons.error,
-                                            color: Colors.red,
+                                    child: imageUrl != null && imageUrl.toString().isNotEmpty
+                                        ? Image.network(
+                                            imageUrl,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return Container(
+                                                color: Colors.grey[300],
+                                                child: Icon(
+                                                  Icons.image_not_supported,
+                                                  color: Colors.grey[600],
+                                                  size: 40,
+                                                ),
+                                              );
+                                            },
+                                            loadingBuilder:
+                                                (context, child, loadingProgress) {
+                                              if (loadingProgress == null)
+                                                return child;
+                                              return Center(
+                                                child: CircularProgressIndicator(),
+                                              );
+                                            },
+                                          )
+                                        : Container(
+                                            color: Colors.grey[300],
+                                            child: Icon(
+                                              Icons.category,
+                                              color: Colors.grey[600],
+                                              size: 40,
+                                            ),
                                           ),
-                                        );
-                                      },
-                                      loadingBuilder:
-                                          (context, child, loadingProgress) {
-                                        if (loadingProgress == null)
-                                          return child;
-                                        return Center(
-                                          child: CircularProgressIndicator(),
-                                        );
-                                      },
-                                    ),
                                   ),
                                 ),
                               ),

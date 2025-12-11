@@ -67,23 +67,40 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   uploadSubCategory() async {
     EasyLoading.show();
     if (_subCategoryFormKey.currentState!.validate()) {
-      if (_image == null) {
-        EasyLoading.dismiss();
-        EasyLoading.showError('Lütfen bir fotoğraf seçin!');
-        return;
-      }
       if (selectedMainCategoryId == null) {
         EasyLoading.dismiss();
         EasyLoading.showError('Lütfen bir ana kategori seçin!');
         return;
       }
-      String imageUrl = await _upLoadCategoryBannerToStorage(_image);
-      await _firestore.collection('categories').doc(fileName).set({
-        'image': imageUrl,
+
+      String? imageUrl;
+      String? docId;
+
+      // Fotoğraf varsa yükle
+      if (_image != null && fileName != null) {
+        imageUrl = await _upLoadCategoryBannerToStorage(_image);
+        docId = fileName;
+      } else {
+        // Fotoğraf yoksa benzersiz bir ID oluştur
+        docId = DateTime.now().millisecondsSinceEpoch.toString();
+      }
+
+      Map<String, dynamic> categoryData = {
         'categoryName': subCategoryName,
         'mainCategoryId': selectedMainCategoryId,
         'createdAt': FieldValue.serverTimestamp(),
-      }).whenComplete(() {
+      };
+
+      // Fotoğraf varsa ekle
+      if (imageUrl != null) {
+        categoryData['image'] = imageUrl;
+      }
+
+      await _firestore
+          .collection('categories')
+          .doc(docId)
+          .set(categoryData)
+          .whenComplete(() {
         EasyLoading.dismiss();
         EasyLoading.showSuccess('Alt kategori eklendi!');
         setState(() {
