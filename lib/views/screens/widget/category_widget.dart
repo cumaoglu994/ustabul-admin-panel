@@ -7,7 +7,6 @@ class CategoryWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-    double genislik = MediaQuery.of(context).size.width / 6;
 
     // Ana kategorileri dinle
     final Stream<QuerySnapshot> _mainCategoriesStream =
@@ -105,76 +104,45 @@ class CategoryWidget extends StatelessWidget {
                         );
                       }
 
-                      return GridView.builder(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: subSnapshot.data!.docs.length,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 6,
-                          mainAxisSpacing: 8,
-                          crossAxisSpacing: 8,
-                        ),
-                        itemBuilder: (context, subIndex) {
-                          final subCategoryData =
-                              subSnapshot.data!.docs[subIndex];
-                          final imageUrl = subCategoryData['image'];
-                          return Column(
-                            children: [
-                              Padding(
-                                padding:
-                                    const EdgeInsets.only(right: 8.0, left: 8),
-                                child: SizedBox(
-                                  height: 100,
-                                  width: genislik,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: imageUrl != null && imageUrl.toString().isNotEmpty
-                                        ? Image.network(
-                                            imageUrl,
-                                            fit: BoxFit.cover,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                              return Container(
-                                                color: Colors.grey[300],
-                                                child: Icon(
-                                                  Icons.image_not_supported,
-                                                  color: Colors.grey[600],
-                                                  size: 40,
-                                                ),
-                                              );
-                                            },
-                                            loadingBuilder:
-                                                (context, child, loadingProgress) {
-                                              if (loadingProgress == null)
-                                                return child;
-                                              return Center(
-                                                child: CircularProgressIndicator(),
-                                              );
-                                            },
-                                          )
-                                        : Container(
-                                            color: Colors.grey[300],
-                                            child: Icon(
-                                              Icons.category,
-                                              color: Colors.grey[600],
-                                              size: 40,
-                                            ),
-                                          ),
+                      return Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: subSnapshot.data!.docs.map((doc) {
+                          final categoryName = doc['categoryName'] ?? '';
+                          return Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.green[50],
+                              border: Border.all(
+                                color: Colors.green,
+                                width: 1.5,
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.category,
+                                  size: 18,
+                                  color: Colors.green[700],
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  categoryName,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.green[900],
                                   ),
                                 ),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                subCategoryData['categoryName'],
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           );
-                        },
+                        }).toList(),
                       );
                     },
                   ),
